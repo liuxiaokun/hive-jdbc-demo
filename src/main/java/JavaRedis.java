@@ -14,7 +14,7 @@ public class JavaRedis {
 //        System.out.println(value);
 
         Set<String> sentinels = new HashSet<String>();
-        sentinels.add(new HostAndPort("172.16.60.5", 26379).toString());
+            sentinels.add(new HostAndPort("172.16.60.5", 26379).toString());
         sentinels.add(new HostAndPort("172.16.60.6", 26379).toString());
         sentinels.add(new HostAndPort("172.16.60.7", 26379).toString());
 
