@@ -1,5 +1,6 @@
 package mqtt;
 
+import com.alibaba.fastjson.JSONObject;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
@@ -38,7 +39,8 @@ public class HdSDKDemo {
                         client.setCallback(new OnMessageCallback());
                         System.out.println("Connecting to broker: " + broker);
                         client.connect(connOpts);
-                        client.subscribe("/+/+/function/invoke");
+                        client.subscribe("/" + PRODUCT_KEY + "/" + DEVICE_KEY + "/function/invoke");
+                        client.subscribe("/" + PRODUCT_KEY + "/" + DEVICE_KEY + "/sdk/upgrade");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -50,16 +52,23 @@ public class HdSDKDemo {
     }
 
     public static void main(String[] args) {
-        String content = "{\"temperature\":\"38.2\"}";
+        JSONObject content = new JSONObject();
+        float tem = 38.6f;
+        int speed = 30;
+        content.put("temperature", tem + "");
+        content.put("speed", speed);
         int qos = 2;
 
         try {
             MqttClient mqttClient = getInstance();
-            System.out.println("Publishing message: " + content);
-            // 消息发布所需参数
-            MqttMessage message = new MqttMessage(content.getBytes());
+            MqttMessage message = new MqttMessage(content.toJSONString().getBytes());
             message.setQos(qos);
             while (true) {
+                tem += 0.1;
+                speed += 1;
+                content.put("temperature", tem + "");
+                content.put("speed", speed);
+                System.out.println("Publishing message: " + content.toJSONString());
                 mqttClient.publish("/" + PRODUCT_KEY + "/" + DEVICE_KEY + "/properties/report", message);
                 System.out.println("Message published");
                 Thread.sleep(10000);
