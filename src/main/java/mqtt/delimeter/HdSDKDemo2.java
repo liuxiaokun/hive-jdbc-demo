@@ -1,43 +1,37 @@
-package mqtt;
+package mqtt.delimeter;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
-import org.apache.commons.math.random.RandomAdaptor;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import static mqtt.HdSDKDemo.*;
 
-public class HdSDKDemo {
+public class HdSDKDemo2 {
 
     /**
-     * 需要配置的要素
+     * 需要配置的三个要素 分隔符测试产品
      */
-    public static final String PRODUCT_KEY = "db2f197fd13641eaa46e4ec484c890d3";
-    public static final String DEVICE_KEY = "8b76424e41d74920bd7e5b92a56ee339";
+    public static final String PRODUCT_KEY = "2d922c48521646be988c87a221261115";
+    public static final String DEVICE_KEY = "c614b8356b17490db2679ede9273ae2f";
 
     public static final String FUNCTION_INVOKE_TOPIC = "/" + PRODUCT_KEY + "/" + DEVICE_KEY + "/function/invoke";
     public static final String SDK_UPGRADE_TOPIC = "/" + PRODUCT_KEY + "/" + DEVICE_KEY + "/sdk/upgrade";
 
     private static MqttClient client = null;
 
-    private HdSDKDemo() {
+    private HdSDKDemo2() {
         // empty constructor
     }
 
     public static MqttClient getInstance() {
         String broker = "tcp://172.16.10.2:7231";
         if (null == client) {
-            synchronized (HdSDKDemo.class) {
+            synchronized (HdSDKDemo2.class) {
                 if (null == client) {
                     MemoryPersistence persistence = new MemoryPersistence();
                     try {
@@ -47,7 +41,7 @@ public class HdSDKDemo {
                         connOpts.setPassword("ok".toCharArray());
                         connOpts.setCleanSession(false);
                         connOpts.setKeepAliveInterval(25);
-                        client.setCallback(new OnMessageCallback());
+                        client.setCallback(new OnMessageCallback2());
                         System.out.println("Connecting to broker: " + broker);
                         client.connect(connOpts);
                         client.subscribe(FUNCTION_INVOKE_TOPIC);
@@ -63,7 +57,7 @@ public class HdSDKDemo {
     }
 
     public static void main(String[] args) {
-        final JSONObject content = new JSONObject();
+        Random random = new Random();
         int qos = 0;
 
         try {
@@ -75,8 +69,7 @@ public class HdSDKDemo {
                 //发送心跳
                 System.out.println("发送心跳...");
                 try {
-                    String sdkVersion = "1.0.1";
-                    MqttMessage message = new MqttMessage(sdkVersion.getBytes());
+                    MqttMessage message = new MqttMessage("1".getBytes());
                     mqttClient.publish("/" + PRODUCT_KEY + "/" + DEVICE_KEY + "/heart", message);
                 } catch (MqttException e) {
                     e.printStackTrace();
@@ -86,30 +79,28 @@ public class HdSDKDemo {
             // 发送设备数据
             executorService.scheduleAtFixedRate(() -> {
                 System.out.println("上报设备数据...");
-                Random random = new Random();
-                content.put("temperature",  (float)Math.random());
-                content.put("speed", random.nextInt(10));
-                content.put("engineSpeed", random.nextInt(10));
-
-                //content.put("oilPressure",  random.nextInt(10));
-                //content.put("engineOliTem", (int)(Math.random()*100)+1);
-                MqttMessage message = new MqttMessage(content.toJSONString().getBytes());
+//                content.put("temp", (float)Math.random() * 100);
+//                content.put("waterInOil", true);
+//                content.put("speed", random.nextInt(10));
+//                String content = Math.abs(random.nextLong()) + "," + Math.random() * 100 +  ",sfsdfsd";
+                String content = random.nextInt(10) + "," + random.nextInt(10) +  "," + random.nextInt(10);
+                MqttMessage message = new MqttMessage(content.getBytes());
                 message.setQos(qos);
-                System.out.println("Publishing message: " + content.toJSONString());
+                System.out.println("Publishing message: " + content);
                 try {
                     mqttClient.publish("/" + PRODUCT_KEY + "/" + DEVICE_KEY + "/properties/report", message);
                 } catch (MqttException e) {
                     e.printStackTrace();
                 }
                 System.out.println("Message published");
-            }, 1, 50, TimeUnit.SECONDS);
+            }, 15, 20, TimeUnit.SECONDS);
         } catch (Exception me) {
             me.printStackTrace();
         }
     }
 }
 
-class OnMessageCallback implements MqttCallback {
+class OnMessageCallback2 implements MqttCallback {
 
 
     @Override
@@ -124,20 +115,19 @@ class OnMessageCallback implements MqttCallback {
         String messageStr = new String(message.getPayload());
         System.out.println("接收消息内容:" + messageStr);
         JSONObject messageObj = JSONObject.parseObject(messageStr);
-        MqttClient mqttClient = HdSDKDemo.getInstance();
-        if (topic.equals(FUNCTION_INVOKE_TOPIC)) {
+        MqttClient mqttClient = HdSDKDemo2.getInstance();
+        if (topic.equals(HdSDKDemo2.FUNCTION_INVOKE_TOPIC)) {
             //会话ID
             String dialogId = messageObj.get("dialogId").toString();
             JSONObject replyObj = new JSONObject();
             replyObj.put("dialogId", dialogId);
             replyObj.put("status", "success");
             MqttMessage replyMsg = new MqttMessage(replyObj.toJSONString().getBytes());
-            mqttClient.publish("/" + PRODUCT_KEY + "/" + DEVICE_KEY + "/function/invoke/reply", replyMsg);
-        } else if (topic.equals(SDK_UPGRADE_TOPIC)) {
-            System.out.println("收到设备升级指令");
+            mqttClient.publish("/" + HdSDKDemo2.PRODUCT_KEY + "/" + HdSDKDemo2.DEVICE_KEY + "/function/invoke/reply", replyMsg);
+        } else if (topic.equals(HdSDKDemo2.SDK_UPGRADE_TOPIC)) {
             String url = messageObj.get("url").toString();
             String version = messageObj.get("version").toString();
-            System.out.println("uprade, url:" + url + ", version:" + version);
+            System.out.println("uprade, url" + url + ", version:" + version);
         }
     }
 
