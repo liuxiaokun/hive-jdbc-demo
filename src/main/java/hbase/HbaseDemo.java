@@ -94,8 +94,8 @@ public class HbaseDemo {
         for (Result result = rs.next(); result != null; result = rs.next()) {
             for (Cell cell : result.rawCells()) {
                 System.out.println("RowKey :" + Bytes.toString(result.getRow()) +
-                                "Familiy:Qualifir :" + Bytes.toString(CellUtil.cloneQualifier(cell)) +
-                                "Value:" + Bytes.toString(CellUtil.cloneValue(cell)));
+                        "Familiy:Qualifir :" + Bytes.toString(CellUtil.cloneQualifier(cell)) +
+                        "Value:" + Bytes.toString(CellUtil.cloneValue(cell)));
             }
         }
 
@@ -103,10 +103,10 @@ public class HbaseDemo {
         //get
         Get get = new Get(Bytes.toBytes("row-1"));
         Result result = table.get(get);
-        for(Cell cell:result.rawCells()){
+        for (Cell cell : result.rawCells()) {
             System.out.println(
                     "RowKey :" + Bytes.toString(result.getRow()) +
-                            "Familiy:Qualifir :" + Bytes.toString(CellUtil.cloneQualifier(cell))+
+                            "Familiy:Qualifir :" + Bytes.toString(CellUtil.cloneQualifier(cell)) +
                             "Value:" + Bytes.toString(CellUtil.cloneValue(cell)));
         }
 
